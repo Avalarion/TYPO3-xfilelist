@@ -23,6 +23,7 @@ use TYPO3\CMS\Core\Resource\Utility\ListUtility;
 use TYPO3\CMS\Core\Type\Bitmask\JsConfirmation;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Filelist\Controller\FileListController;
+use TYPO3\CMS\Recordlist\Browser\FileBrowser;
 
 /**
  * Class RecordListBrowserFileList
@@ -1302,13 +1303,33 @@ class RecordListBrowserFileList extends AbstractRecordList
     {
         $fileExtension = $fileObject->getExtension();
         // Thumbnail/size generation:
-        if (!$noThumbs && GeneralUtility::inList(strtolower($GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'] . ',' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['mediafile_ext']), strtolower($fileExtension))) {
+        /*if (!$noThumbs && GeneralUtility::inList(strtolower($GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'] . ',' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['mediafile_ext']), strtolower($fileExtension))) {
             $imgInfo = [
                 $fileObject->getProperty('width'),
                 $fileObject->getProperty('height')
             ];
             $pDim = $imgInfo[0] . 'x' . $imgInfo[1] . ' pixels';
         } else {
+            $pDim = '';
+        }
+        */
+        if (!$noThumbs && GeneralUtility::inList(strtolower($GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'] . ',' . $GLOBALS['TYPO3_CONF_VARS']['SYS']['mediafile_ext']), strtolower($fileExtension))) {
+            $processedFile = $fileObject->process(
+                ProcessedFile::CONTEXT_IMAGEPREVIEW,
+                ['width' => 64, 'height' => 64]
+            );
+            $imageUrl = $processedFile->getPublicUrl(true);
+            $imgInfo = [
+                $fileObject->getProperty('width'),
+                $fileObject->getProperty('height')
+            ];
+            $pDim = $imgInfo[0] . 'x' . $imgInfo[1] . ' pixels';
+            $clickIcon = '<img src="' . $imageUrl . '"'
+                . ' width="' . $processedFile->getProperty('width') . '"'
+                . ' height="' . $processedFile->getProperty('height') . '"'
+                . ' hspace="5" vspace="5" border="1" />';
+        } else {
+            $clickIcon = '';
             $pDim = '';
         }
         // Create file icon:
